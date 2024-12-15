@@ -8,26 +8,36 @@ jobs:
   build-and-deploy:
     runs-on: ubuntu-latest
     steps:
-      - name: Check out code
+      - name: Checkout Code
         uses: actions/checkout@v2
 
-      # Setup gcloud CLI
+      # Step 1: Authenticate using the auth action
+      # This expects your service account key JSON to be in a GitHub secret called GCP_SA_KEY
+      - name: Authenticate with GCP
+        uses: google-github-actions/auth@v1
+        with:
+          credentials_json: ${{ secrets.GCP_SA_KEY }}
+
+      # Step 2: Set up the Cloud SDK (no authentication parameters needed)
       - name: Set up Cloud SDK
         uses: google-github-actions/setup-gcloud@v1
         with:
           project_id: ${{ secrets.GCP_PROJECT_ID }}
-          service_account_email: ${{ secrets.GCP_SA_EMAIL }}
-          service_account_key: ${{ secrets.GCP_SA_KEY }}
-          export_default_credentials: true
+          install_components: beta
 
-      # Optionally, run tests (if you have tests)
+      # (Optional) Set up Python if needed for tests
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.9'
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
       - name: Run tests
-        run: |
-          # e.g. for Python:
-          pip install -r requirements.txt
-          pytest
+        run: pytest
 
-      # Deploy the Cloud Function
+      # Step 3: Deploy the function using the already authenticated gcloud
       - name: Deploy to Cloud Functions
         run: |
           gcloud functions deploy hello_world \
