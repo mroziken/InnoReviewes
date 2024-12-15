@@ -31,8 +31,8 @@ jobs:
       - name: Deploy to Cloud Functions
         run: |
           gcloud functions deploy hello_world \
-            --region=us-central1 \
-            --runtime=python39 \
+            --region=europe-central2 \
+            --runtime=python311 \
             --trigger-http \
             --allow-unauthenticated \
             --entry-point=hello_world
