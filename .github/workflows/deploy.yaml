@@ -1,0 +1,38 @@
+name: Deploy GCP Function
+
+on:
+  push:
+    branches: [ "main" ]
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out code
+        uses: actions/checkout@v2
+
+      # Setup gcloud CLI
+      - name: Set up Cloud SDK
+        uses: google-github-actions/setup-gcloud@v1
+        with:
+          project_id: ${{ secrets.GCP_PROJECT_ID }}
+          service_account_email: ${{ secrets.GCP_SA_EMAIL }}
+          service_account_key: ${{ secrets.GCP_SA_KEY }}
+          export_default_credentials: true
+
+      # Optionally, run tests (if you have tests)
+      - name: Run tests
+        run: |
+          # e.g. for Python:
+          pip install -r requirements.txt
+          pytest
+
+      # Deploy the Cloud Function
+      - name: Deploy to Cloud Functions
+        run: |
+          gcloud functions deploy hello_world \
+            --region=us-central1 \
+            --runtime=python39 \
+            --trigger-http \
+            --allow-unauthenticated \
+            --entry-point=hello_world
